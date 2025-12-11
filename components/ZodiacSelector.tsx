@@ -5,7 +5,7 @@ import { ZodiacSign } from '../Types';
 import { zodiacData } from '../Utils/zodiacData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const GRID_COLUMNS = 4;
+const GRID_COLUMNS = 3; // 3 columns = 4 rows (12 signs / 3 = 4 rows) - wider boxes
 const GRID_PADDING = 20; // Total horizontal padding (10 on each side)
 const GRID_GAP = 8;
 // Calculate button width accounting for margins on both sides (GRID_GAP/2 each side = GRID_GAP total per button)
@@ -71,7 +71,7 @@ const ZodiacSelector: React.FC<ZodiacSelectorProps> = ({
               />
               <Text 
                 style={styles.gridSignName}
-                numberOfLines={1}
+                numberOfLines={2}
                 ellipsizeMode="tail"
               >
                 {zodiac.name}
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     backgroundColor: 'white',
     justifyContent: 'center',
-    minHeight: 70,
+    minHeight: 75,
     marginHorizontal: GRID_GAP / 2,
   },
   selectedSign: {
