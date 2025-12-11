@@ -250,10 +250,10 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
             style={[
               styles.tipGrab,
               {
-                left: tipOffsetX - 40, // center the 80x80 box on the tip
-                top:  tipOffsetY - 40,
-                width: 80,
-                height: 80,
+                left: tipOffsetX - 60, // center the 120x120 box on the tip
+                top:  tipOffsetY - 60,
+                width: 120,
+                height: 120,
               },
             ]}
             pointerEvents="auto"
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   // Transparent touch area placed at the petal TIP
   tipGrab: {
     position: 'absolute',
-    borderRadius: 40,
+    borderRadius: 60,
     // optional: uncomment to debug the area
     // backgroundColor: 'rgba(0,255,0,0.15)',
   },
