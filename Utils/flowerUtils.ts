@@ -1,8 +1,8 @@
 import { ZodiacSign } from '../Types';
 
-// Generate a random number of petals (8-12)
+// Generate a random number of petals (9-12)
 export const generatePetalCount = (): number => {
-  return Math.floor(Math.random() * 5) + 8; // 8 to 12 petals
+  return Math.floor(Math.random() * 4) + 9; // 9 to 12 petals
 };
 
 // Determine the final result based on petal count

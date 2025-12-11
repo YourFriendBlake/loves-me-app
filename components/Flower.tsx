@@ -14,6 +14,7 @@ interface FlowerProps {
   userSign?: ZodiacSign;
   crushSign?: ZodiacSign;
   onComplete: (result: boolean) => void;
+  soundVolume: number;
 }
 
 const Flower: React.FC<FlowerProps> = ({ 
@@ -21,7 +22,8 @@ const Flower: React.FC<FlowerProps> = ({
   name, 
   userSign, 
   crushSign, 
-  onComplete 
+  onComplete,
+  soundVolume
 }) => {
   const [removedPetals, setRemovedPetals] = useState<number[]>([]);
   const [currentState, setCurrentState] = useState<'loves' | 'loves not' | null>(null);
@@ -111,6 +113,7 @@ const Flower: React.FC<FlowerProps> = ({
             // Place the petal base on the rim of the yellow center,
             // with a tiny margin so petals don't overlap the center art.
             radius={(centerSize.width / 2) - 10}
+            soundVolume={soundVolume}
           />
         ))}
         

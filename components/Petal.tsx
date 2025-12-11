@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Image, Dimensions } from 'react-native';
+import { Audio } from 'expo-av';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -23,9 +24,27 @@ interface PetalProps {
   isRemoved: boolean;
   center: { x: number; y: number };
   radius: number;
+  soundVolume: number;
 }
 
-const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center, radius }) => {
+const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center, radius, soundVolume }) => {
+  // Initialize audio mode once
+  React.useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+      } catch (error) {
+        console.log('Audio setup error:', error);
+      }
+    };
+    setupAudio();
+  }, []);
+
   const opacity = useSharedValue(1);
   // Source image & base pivot (already used)
   const PETAL_W = 531;
@@ -93,9 +112,77 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
     }
   };
 
+  const playPopSound = async () => {
+    // Don't play if volume is 0
+    if (soundVolume <= 0) {
+      console.log('Sound volume is 0, skipping playback');
+      return;
+    }
+    
+    try {
+      // Randomly select one of the 5 pop sounds
+      const popSounds = [
+        require('../assets/Pop1.mp3'),
+        require('../assets/Pop2.mp3'),
+        require('../assets/Pop3.mp3'),
+        require('../assets/Pop4.mp3'),
+        require('../assets/Pop5.mp3'),
+      ];
+      
+      const randomIndex = Math.floor(Math.random() * popSounds.length);
+      const selectedSound = popSounds[randomIndex];
+      
+      console.log('Playing pop sound:', randomIndex + 1, 'Volume:', soundVolume);
+      
+      // Load and play the randomly selected pop sound
+      const { sound } = await Audio.Sound.createAsync(
+        selectedSound,
+        { shouldPlay: false, volume: soundVolume }
+      );
+      
+      // Set volume and pitch (via playback rate) - 1.25 makes it higher pitched
+      await sound.setVolumeAsync(soundVolume);
+      await sound.setRateAsync(2, true); // 1.25x speed = higher pitch, true = respect pitch
+      const playbackStatus = await sound.playAsync();
+      if (playbackStatus.isLoaded) {
+        console.log('Sound playback started:', playbackStatus.isLoaded, playbackStatus.isPlaying);
+      } else {
+        console.error('Sound playback failed:', playbackStatus.error);
+      }
+      
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded) {
+          if (status.didJustFinish) {
+            sound.unloadAsync().catch(err => console.log('Unload error:', err));
+          }
+        } else {
+          // Only log if there's an actual error
+          if (status.error) {
+            console.error('Sound playback error:', status.error);
+          }
+        }
+      });
+    } catch (error: any) {
+      // Log error to help debug
+      console.error('Sound playback error:', error);
+      if (error.message) {
+        console.error('Error message:', error.message);
+      }
+      if (error.code) {
+        console.error('Error code:', error.code);
+      }
+    }
+  };
+
   const triggerRemoveCallback = () => {
     'worklet';
     runOnJS(handleRemove)();
+  };
+
+  const triggerPopSound = () => {
+    'worklet';
+    console.log('triggerPopSound called, volume:', soundVolume);
+    runOnJS(playPopSound)();
   };
 
   const startFallingAnimation = () => {
@@ -127,7 +214,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
     // Gravity effect - accelerate downward
     // Calculate how far down the screen to fall
     const fallDistance = SCREEN_HEIGHT + 500; // Fall off screen with buffer
-    const fallDuration = 1500 + Math.random() * 500; // Randomize fall time slightly
+    const fallDuration = 4000 + Math.random() * 1500; // Randomize fall time slightly (much slower)
     
     translateY.value = withTiming(
       fallDistance,
@@ -188,7 +275,9 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
         );
         
         // Threshold for removal - if dragged far enough, make it fall
-        if (dragDistance > 80) {
+        if (dragDistance > 10) {
+          // Play pop sound when petal is pulled past threshold
+          triggerPopSound();
           // Petal was pulled far enough - start falling animation
           // startFallingAnimation will call triggerRemoveCallback
           startFallingAnimation();

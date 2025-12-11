@@ -1,6 +1,7 @@
 // App.tsx
 import React, { useState } from 'react';
 import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput } from 'react-native';
+import Slider from '@react-native-community/slider';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ZodiacSign } from './Types';
@@ -23,6 +24,7 @@ export default function App() {
   // Game variables
   const [petalCount, setPetalCount] = useState(0);
   const [result, setResult] = useState(false);
+  const [soundVolume, setSoundVolume] = useState(0.5); // Default volume 50%
   
   const startGame = () => {
     if (crushName.trim() === '') {
@@ -88,6 +90,23 @@ export default function App() {
         />
         </View>
         
+        <View style={styles.volumeSection}>
+          <Text style={styles.volumeLabel}>Sound Volume</Text>
+          <View style={styles.sliderContainer}>
+            <Text style={styles.volumeValue}>{Math.round(soundVolume * 100)}%</Text>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={1}
+              value={soundVolume}
+              onValueChange={setSoundVolume}
+              minimumTrackTintColor="#FF69B4"
+              maximumTrackTintColor="#FFB6C1"
+              thumbTintColor="#FF69B4"
+            />
+          </View>
+        </View>
+        
         <TouchableOpacity 
           style={[
             styles.startButton, 
@@ -110,6 +129,7 @@ export default function App() {
         userSign={userSign}
         crushSign={crushSign}
         onComplete={handleGameComplete}
+        soundVolume={soundVolume}
       />
     </View>
   );
@@ -223,5 +243,37 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontSize: 16,
     color: '#333',
+  },
+  volumeSection: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#FFB6C1',
+  },
+  volumeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF69B4',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  volumeValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF69B4',
+    minWidth: 50,
+    textAlign: 'right',
+    marginRight: 10,
+  },
+  slider: {
+    flex: 1,
+    height: 40,
   },
 });
