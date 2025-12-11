@@ -26,6 +26,8 @@ const Flower: React.FC<FlowerProps> = ({
   const [removedPetals, setRemovedPetals] = useState<number[]>([]);
   const [currentState, setCurrentState] = useState<'loves' | 'loves not' | null>(null);
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [flowerSize, setFlowerSize] = useState({ width: 720, height: 720 });
+  const [centerSize, setCenterSize] = useState({ width: 75, height: 75 }); // default to your styled size
   
   const getPetalPosition = (index: number) => {
     const angleStep = 360 / petalCount;
@@ -89,7 +91,14 @@ const Flower: React.FC<FlowerProps> = ({
         />
       </View>
       
-      <View style={styles.flowerContainer} pointerEvents="box-none">
+      <View
+        style={styles.flowerContainer}
+        pointerEvents="box-none"
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setFlowerSize({ width, height });
+        }}
+      >
         {/* Petals */}
         {Array.from({ length: petalCount }).map((_, index) => (
           <Petal
@@ -98,11 +107,22 @@ const Flower: React.FC<FlowerProps> = ({
             onRemove={() => handlePetalRemove(index)}
             index={index}
             isRemoved={removedPetals.includes(index)}
+            center={{ x: flowerSize.width / 2, y: flowerSize.height / 2 }}
+            // Place the petal base on the rim of the yellow center,
+            // with a tiny margin so petals don't overlap the center art.
+            radius={(centerSize.width / 2) - 10}
           />
         ))}
         
         {/* Center of the flower - rendered last to appear on top */}
-        <View style={styles.flowerImageContainer} pointerEvents="none">
+        <View
+          style={styles.flowerImageContainer}
+          pointerEvents="none"
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setCenterSize({ width, height });
+          }}
+        >
           <Image 
             source={require('../assets/Flower.png')} 
             style={styles.flowerImage}
@@ -140,7 +160,7 @@ const styles = StyleSheet.create({
     left: SCREEN_WIDTH / 1 - 85, // Center horizontally: screen center minus half width
     width: 150,
     height: SCREEN_HEIGHT / 2, // Extend from flower center to bottom of screen
-    zIndex: 1, // Behind petals and flower
+    zIndex: 0, // Behind petals (which start at zIndex 10) and flower center
     justifyContent: 'flex-start',
     alignItems: 'center',
     transform: [{ rotate: '15deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')

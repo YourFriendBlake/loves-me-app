@@ -39,7 +39,7 @@ const ZodiacSelector: React.FC<ZodiacSelectorProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title}>{title}</Text>
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={() => setIsGridVisible(!isGridVisible)}

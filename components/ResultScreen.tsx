@@ -2,8 +2,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Animated, Image } from 'react-native';
 import { ZodiacSign } from '../Types';
-import { calculateCompatibility } from '../Utils/compatibility';
-import { zodiacData } from '../Utils/zodiacData';
 
 interface ResultScreenProps {
   result: boolean;
@@ -40,24 +38,6 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
     ]).start();
   }, []);
   
-  const compatibilityScore = userSign && crushSign 
-    ? calculateCompatibility(userSign, crushSign) 
-    : null;
-  
-  const getCompatibilityText = () => {
-    if (!compatibilityScore || !userSign || !crushSign) return null;
-    
-    if (compatibilityScore >= 75) {
-      return "The stars suggest you two have a powerful connection!";
-    } else if (compatibilityScore >= 50) {
-      return "Your signs indicate good compatibility.";
-    } else if (compatibilityScore >= 25) {
-      return "There's some astrological tension, but that can create a dynamic relationship.";
-    } else {
-      return "Astrologically speaking, this match may require some effort.";
-    }
-  };
-  
   return (
     <View style={styles.container}>
       <Animated.View 
@@ -81,20 +61,6 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
         <Text style={[styles.resultText, result ? styles.positiveResult : styles.negativeResult]}>
           {result ? `${name} loves you!` : `${name} loves you not.`}
         </Text>
-        
-        {userSign && crushSign && (
-          <View style={styles.compatibilityContainer}>
-            <Text style={styles.compatibilityTitle}>Astrological Compatibility</Text>
-            <Text style={styles.compatibilityText}>
-              {getCompatibilityText()}
-            </Text>
-            {compatibilityScore !== null && (
-              <Text style={styles.compatibilityScore}>
-                Compatibility Score: {compatibilityScore}%
-              </Text>
-            )}
-          </View>
-        )}
         
         <TouchableOpacity 
           style={styles.playAgainButton} 
@@ -161,36 +127,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  compatibilityContainer: {
-    marginTop: 20,
-    padding: 20,
-    backgroundColor: '#FFF0F5',
-    borderRadius: 15,
-    width: '100%',
-    borderWidth: 2,
-    borderColor: '#FFB6C1',
-  },
-  compatibilityTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF69B4',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  compatibilityText: {
-    fontSize: 16,
-    color: '#FF69B4',
-    textAlign: 'center',
-    marginBottom: 10,
-    lineHeight: 22,
-  },
-  compatibilityScore: {
-    fontSize: 14,
-    color: '#FF69B4',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 5,
   },
 });
 

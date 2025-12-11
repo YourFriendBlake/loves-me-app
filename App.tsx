@@ -58,34 +58,34 @@ export default function App() {
     >
       <View style={styles.setupContainer}>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Loves Me, Loves Me Not</Text>
-          <Text style={styles.subtitle}>Find out if your crush loves you!</Text>
+        <Text style={styles.title}>Loves Me, Loves Me Not</Text>
+        <Text style={styles.subtitle}>Find out if your crush loves you!</Text>
         </View>
         
         <View style={styles.inputSection}>
-          <TextInput
-            style={styles.input}
-            placeholder="Their name"
+        <TextInput
+          style={styles.input}
+          placeholder="Their name"
             placeholderTextColor="#999"
-            value={crushName}
-            onChangeText={setCrushName}
-          />
+          value={crushName}
+          onChangeText={setCrushName}
+        />
         </View>
         
         <View style={styles.zodiacSection}>
-          <Text style={styles.optionalTitle}>Optional: Add Astrological Compatibility</Text>
-          
-          <ZodiacSelector
-            title="Your Sign"
-            selectedSign={userSign}
-            onSelect={setUserSign}
-          />
-          
-          <ZodiacSelector
-            title="Their Sign"
-            selectedSign={crushSign}
-            onSelect={setCrushSign}
-          />
+        <Text style={styles.optionalTitle}>Optional: Add Astrological Compatibility</Text>
+        
+        <ZodiacSelector
+          title="Your Sign"
+          selectedSign={userSign}
+          onSelect={setUserSign}
+        />
+        
+        <ZodiacSelector
+          title="Their Sign"
+          selectedSign={crushSign}
+          onSelect={setCrushSign}
+        />
         </View>
         
         <TouchableOpacity 
