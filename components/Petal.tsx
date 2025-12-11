@@ -24,10 +24,10 @@ interface PetalProps {
   isRemoved: boolean;
   center: { x: number; y: number };
   radius: number;
-  soundVolume: number;
+  soundEnabled: boolean;
 }
 
-const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center, radius, soundVolume }) => {
+const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center, radius, soundEnabled }) => {
   // Initialize audio mode once
   React.useEffect(() => {
     const setupAudio = async () => {
@@ -113,9 +113,8 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
   };
 
   const playPopSound = async () => {
-    // Don't play if volume is 0
-    if (soundVolume <= 0) {
-      console.log('Sound volume is 0, skipping playback');
+    // Don't play if sound is disabled
+    if (!soundEnabled) {
       return;
     }
     
@@ -132,17 +131,15 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
       const randomIndex = Math.floor(Math.random() * popSounds.length);
       const selectedSound = popSounds[randomIndex];
       
-      console.log('Playing pop sound:', randomIndex + 1, 'Volume:', soundVolume);
-      
-      // Load and play the randomly selected pop sound
+      // Load and play the randomly selected pop sound at maximum volume
       const { sound } = await Audio.Sound.createAsync(
         selectedSound,
-        { shouldPlay: false, volume: soundVolume }
+        { shouldPlay: false, volume: 1.0 }
       );
       
-      // Set volume and pitch (via playback rate) - 1.25 makes it higher pitched
-      await sound.setVolumeAsync(soundVolume);
-      await sound.setRateAsync(2, true); // 1.25x speed = higher pitch, true = respect pitch
+      // Set volume to maximum and pitch (via playback rate)
+      await sound.setVolumeAsync(1.0);
+      await sound.setRateAsync(5, true); // Higher pitch
       const playbackStatus = await sound.playAsync();
       if (playbackStatus.isLoaded) {
         console.log('Sound playback started:', playbackStatus.isLoaded, playbackStatus.isPlaying);
@@ -181,7 +178,6 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
 
   const triggerPopSound = () => {
     'worklet';
-    console.log('triggerPopSound called, volume:', soundVolume);
     runOnJS(playPopSound)();
   };
 

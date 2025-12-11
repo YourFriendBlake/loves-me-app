@@ -1,6 +1,6 @@
 // components/ZodiacSelector.tsx
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { ZodiacSign } from '../Types';
 import { zodiacData } from '../Utils/zodiacData';
 
@@ -24,13 +24,13 @@ const ZodiacSelector: React.FC<ZodiacSelectorProps> = ({
 }) => {
   const [isGridVisible, setIsGridVisible] = useState(false);
 
-  const getEmoji = (element: string): string => {
+  const getElementImage = (element: string) => {
     switch (element) {
-      case 'Fire': return '🔥';
-      case 'Earth': return '🪨';
-      case 'Air': return '💨';
-      case 'Water': return '💧';
-      default: return '✨';
+      case 'Fire': return require('../assets/Fire.png');
+      case 'Earth': return require('../assets/Earth.png');
+      case 'Air': return require('../assets/Air.png');
+      case 'Water': return require('../assets/Water.png');
+      default: return require('../assets/Fire.png'); // fallback
     }
   };
 
@@ -64,7 +64,11 @@ const ZodiacSelector: React.FC<ZodiacSelectorProps> = ({
               ]}
               onPress={() => onSelect(zodiac.name)}
             >
-              <Text style={styles.gridEmoji}>{getEmoji(zodiac.element)}</Text>
+              <Image 
+                source={getElementImage(zodiac.element)} 
+                style={styles.gridElementImage}
+                resizeMode="contain"
+              />
               <Text 
                 style={styles.gridSignName}
                 numberOfLines={1}
@@ -139,8 +143,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 4,
   },
-  gridEmoji: {
-    fontSize: 22,
+  gridElementImage: {
+    width: 30,
+    height: 30,
     marginBottom: 4,
   },
   signName: {

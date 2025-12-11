@@ -14,7 +14,7 @@ interface FlowerProps {
   userSign?: ZodiacSign;
   crushSign?: ZodiacSign;
   onComplete: (result: boolean) => void;
-  soundVolume: number;
+  soundEnabled: boolean;
 }
 
 const Flower: React.FC<FlowerProps> = ({ 
@@ -23,7 +23,7 @@ const Flower: React.FC<FlowerProps> = ({
   userSign, 
   crushSign, 
   onComplete,
-  soundVolume
+  soundEnabled
 }) => {
   const [removedPetals, setRemovedPetals] = useState<number[]>([]);
   const [currentState, setCurrentState] = useState<'loves' | 'loves not' | null>(null);
@@ -79,9 +79,11 @@ const Flower: React.FC<FlowerProps> = ({
   return (
     <View style={styles.container}>
       {currentState && (
-        <Text style={styles.status}>
-          {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
-        </Text>
+        <View style={styles.statusContainer}>
+          <Text style={styles.status} numberOfLines={2}>
+            {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
+          </Text>
+        </View>
       )}
       
       {/* Stem - positioned relative to screen to reach bottom */}
@@ -113,7 +115,7 @@ const Flower: React.FC<FlowerProps> = ({
             // Place the petal base on the rim of the yellow center,
             // with a tiny margin so petals don't overlap the center art.
             radius={(centerSize.width / 2) - 10}
-            soundVolume={soundVolume}
+            soundEnabled={soundEnabled}
           />
         ))}
         
@@ -143,13 +145,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  statusContainer: {
+    position: 'absolute',
+    top: 130,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    paddingHorizontal: 20,
+  },
   status: {
     fontSize: 35,
     fontStyle: 'italic',
-    position: 'absolute',
-    top: 130, // Adjust this value to move text up or down
-    alignSelf: 'center',
-    zIndex: 10,
+    textAlign: 'center',
+    maxWidth: '90%',
   },
   flowerContainer: {
     width: 720,

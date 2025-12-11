@@ -1,6 +1,7 @@
 // components/ResultScreen.tsx
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Animated, Image } from 'react-native';
+import { Audio } from 'expo-av';
 import { ZodiacSign } from '../Types';
 
 interface ResultScreenProps {
@@ -20,6 +21,58 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
 }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
+  
+  // Initialize audio mode
+  useEffect(() => {
+    const setupAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+      } catch (error) {
+        console.log('Audio setup error:', error);
+      }
+    };
+    setupAudio();
+  }, []);
+
+  // Play result sound effect
+  useEffect(() => {
+    const playResultSound = async () => {
+      try {
+        const soundFile = result 
+          ? require('../assets/LovesYou.mp3')
+          : require('../assets/LovesYouNot.mp3');
+        
+        const { sound } = await Audio.Sound.createAsync(
+          soundFile,
+          { shouldPlay: false, volume: 1.0 }
+        );
+        
+        await sound.setVolumeAsync(1.0);
+        const playbackStatus = await sound.playAsync();
+        
+        if (playbackStatus.isLoaded) {
+          console.log('Result sound playing:', result ? 'LovesYou' : 'LovesYouNot');
+        }
+        
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            sound.unloadAsync().catch(err => console.log('Unload error:', err));
+          } else if (!status.isLoaded && status.error) {
+            console.error('Result sound error:', status.error);
+          }
+        });
+      } catch (error) {
+        console.error('Result sound playback error:', error);
+      }
+    };
+    
+    playResultSound();
+  }, [result]);
   
   useEffect(() => {
     // Animate the result screen appearance
@@ -56,7 +109,11 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
             resizeMode="contain"
           />
         ) : (
-          <Text style={styles.emoji}>😢😢😢</Text>
+          <Image 
+            source={require('../assets/WiltedFlower.png')} 
+            style={styles.wiltedFlowerImage}
+            resizeMode="contain"
+          />
         )}
         <Text style={[styles.resultText, result ? styles.positiveResult : styles.negativeResult]}>
           {result ? `${name} loves you!` : `${name} loves you not.`}
@@ -108,11 +165,12 @@ const styles = StyleSheet.create({
   negativeResult: {
     color: '#8B7D8B', // Muted purple for negative
   },
-  emoji: {
-    fontSize: 80,
+  heartImage: {
+    width: 150,
+    height: 150,
     marginBottom: 20,
   },
-  heartImage: {
+  wiltedFlowerImage: {
     width: 150,
     height: 150,
     marginBottom: 20,

@@ -1,7 +1,6 @@
 // App.tsx
 import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ZodiacSign } from './Types';
@@ -24,7 +23,7 @@ export default function App() {
   // Game variables
   const [petalCount, setPetalCount] = useState(0);
   const [result, setResult] = useState(false);
-  const [soundVolume, setSoundVolume] = useState(0.5); // Default volume 50%
+  const [soundEnabled, setSoundEnabled] = useState(true); // Sound on by default
   
   const startGame = () => {
     if (crushName.trim() === '') {
@@ -53,61 +52,58 @@ export default function App() {
   };
   
   const renderSetupScreen = () => (
-    <ScrollView 
-      style={styles.scrollContainer} 
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.setupContainer}>
-        <View style={styles.headerSection}>
-        <Text style={styles.title}>Loves Me, Loves Me Not</Text>
-        <Text style={styles.subtitle}>Find out if your crush loves you!</Text>
-        </View>
-        
-        <View style={styles.inputSection}>
-        <TextInput
-          style={styles.input}
-          placeholder="Their name"
-            placeholderTextColor="#999"
-          value={crushName}
-          onChangeText={setCrushName}
+    <View style={styles.setupScreenContainer}>
+      {/* Sound icon button in top right */}
+      <TouchableOpacity
+        style={styles.soundIconButton}
+        onPress={() => setSoundEnabled(!soundEnabled)}
+      >
+        <Image
+          source={require('./assets/SoundIcon.png')}
+          style={[styles.soundIcon, !soundEnabled && styles.soundIconOff]}
+          resizeMode="contain"
         />
-        </View>
-        
-        <View style={styles.zodiacSection}>
-        <Text style={styles.optionalTitle}>Optional: Add Astrological Compatibility</Text>
-        
-        <ZodiacSelector
-          title="Your Sign"
-          selectedSign={userSign}
-          onSelect={setUserSign}
-        />
-        
-        <ZodiacSelector
-          title="Their Sign"
-          selectedSign={crushSign}
-          onSelect={setCrushSign}
-        />
-        </View>
-        
-        <View style={styles.volumeSection}>
-          <Text style={styles.volumeLabel}>Sound Volume</Text>
-          <View style={styles.sliderContainer}>
-            <Text style={styles.volumeValue}>{Math.round(soundVolume * 100)}%</Text>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={1}
-              value={soundVolume}
-              onValueChange={setSoundVolume}
-              minimumTrackTintColor="#FF69B4"
-              maximumTrackTintColor="#FFB6C1"
-              thumbTintColor="#FF69B4"
-            />
+      </TouchableOpacity>
+      
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.setupContainer}>
+          <View style={styles.headerSection}>
+          <Text style={styles.title}>Loves Me, Loves Me Not</Text>
+          <Text style={styles.subtitle}>Find out if your crush loves you!</Text>
           </View>
-        </View>
-        
-        <TouchableOpacity 
+          
+          <View style={styles.inputSection}>
+          <TextInput
+            style={styles.input}
+            placeholder="Their name"
+            placeholderTextColor="#999"
+            value={crushName}
+            onChangeText={setCrushName}
+            maxLength={20}
+          />
+          </View>
+          
+          <View style={styles.zodiacSection}>
+          <Text style={styles.optionalTitle}>Optional: Add Astrological Compatibility</Text>
+          
+          <ZodiacSelector
+            title="Your Sign"
+            selectedSign={userSign}
+            onSelect={setUserSign}
+          />
+          
+          <ZodiacSelector
+            title="Their Sign"
+            selectedSign={crushSign}
+            onSelect={setCrushSign}
+          />
+          </View>
+          
+          <TouchableOpacity 
           style={[
             styles.startButton, 
             crushName.trim() === '' && styles.disabledButton
@@ -117,8 +113,9 @@ export default function App() {
         >
           <Text style={styles.startButtonText}>Start Picking Petals</Text>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
   
   const renderGameScreen = () => (
@@ -129,7 +126,7 @@ export default function App() {
         userSign={userSign}
         crushSign={crushSign}
         onComplete={handleGameComplete}
-        soundVolume={soundVolume}
+        soundEnabled={soundEnabled}
       />
     </View>
   );
@@ -150,7 +147,22 @@ export default function App() {
         <StatusBar style="auto" />
         
         {gameState === 'setup' && renderSetupScreen()}
-        {gameState === 'playing' && renderGameScreen()}
+        {gameState === 'playing' && (
+          <View style={styles.gameScreenContainer}>
+            {/* Sound icon button in top right for game screen too */}
+            <TouchableOpacity
+              style={styles.soundIconButton}
+              onPress={() => setSoundEnabled(!soundEnabled)}
+            >
+              <Image
+                source={require('./assets/SoundIcon.png')}
+                style={[styles.soundIcon, !soundEnabled && styles.soundIconOff]}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            {renderGameScreen()}
+          </View>
+        )}
         {gameState === 'result' && renderResultScreen()}
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -162,6 +174,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF0F5', // Light pink background
   },
+  setupScreenContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  gameScreenContainer: {
+    flex: 1,
+    position: 'relative',
+  },
   scrollContainer: {
     flex: 1,
   },
@@ -172,6 +192,8 @@ const styles = StyleSheet.create({
   setupContainer: {
     flex: 1,
     padding: 20,
+    width: '100%',
+    maxWidth: '100%',
   },
   headerSection: {
     marginBottom: 30,
@@ -193,6 +215,8 @@ const styles = StyleSheet.create({
   },
   inputSection: {
     marginBottom: 20,
+    width: '100%',
+    paddingHorizontal: 0,
   },
   zodiacSection: {
     marginBottom: 20,
@@ -243,37 +267,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     fontSize: 16,
     color: '#333',
+    width: '100%',
+    maxWidth: '100%',
   },
-  volumeSection: {
-    marginBottom: 20,
-    padding: 15,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#FFB6C1',
-  },
-  volumeLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FF69B4',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  sliderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  volumeValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FF69B4',
-    minWidth: 50,
-    textAlign: 'right',
-    marginRight: 10,
-  },
-  slider: {
-    flex: 1,
+  soundIconButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1000,
+    width: 40,
     height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  soundIcon: {
+    width: 24,
+    height: 24,
+  },
+  soundIconOff: {
+    opacity: 0.4,
   },
 });
