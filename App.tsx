@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ZodiacSign } from './index';
+import { ZodiacSign } from './Types';
 import { generatePetalCount } from './Utils/flowerUtils';
 
 // Components
@@ -51,31 +51,42 @@ export default function App() {
   };
   
   const renderSetupScreen = () => (
-    <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+    <ScrollView 
+      style={styles.scrollContainer} 
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.setupContainer}>
-        <Text style={styles.title}>Loves Me, Loves Me Not</Text>
-        <Text style={styles.subtitle}>Find out if your crush loves you!</Text>
+        <View style={styles.headerSection}>
+          <Text style={styles.title}>Loves Me, Loves Me Not</Text>
+          <Text style={styles.subtitle}>Find out if your crush loves you!</Text>
+        </View>
         
-        <TextInput
-          style={styles.input}
-          placeholder="Their name"
-          value={crushName}
-          onChangeText={setCrushName}
-        />
+        <View style={styles.inputSection}>
+          <TextInput
+            style={styles.input}
+            placeholder="Their name"
+            placeholderTextColor="#999"
+            value={crushName}
+            onChangeText={setCrushName}
+          />
+        </View>
         
-        <Text style={styles.optionalTitle}>Optional: Add Astrological Compatibility</Text>
-        
-        <ZodiacSelector
-          title="Your Sign"
-          selectedSign={userSign}
-          onSelect={setUserSign}
-        />
-        
-        <ZodiacSelector
-          title="Their Sign"
-          selectedSign={crushSign}
-          onSelect={setCrushSign}
-        />
+        <View style={styles.zodiacSection}>
+          <Text style={styles.optionalTitle}>Optional: Add Astrological Compatibility</Text>
+          
+          <ZodiacSelector
+            title="Your Sign"
+            selectedSign={userSign}
+            onSelect={setUserSign}
+          />
+          
+          <ZodiacSelector
+            title="Their Sign"
+            selectedSign={crushSign}
+            onSelect={setCrushSign}
+          />
+        </View>
         
         <TouchableOpacity 
           style={[
@@ -142,26 +153,38 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  headerSection: {
+    marginBottom: 30,
+    paddingTop: 20,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 10,
-    color: '#FF69B4', // Pink text
+    marginBottom: 8,
+    color: '#FF69B4',
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 30,
-    color: '#FF69B4', // Pink text
+    color: '#FF69B4',
+    opacity: 0.8,
+  },
+  inputSection: {
+    marginBottom: 20,
+  },
+  zodiacSection: {
+    marginBottom: 20,
   },
   optionalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 10,
+    marginBottom: 15,
     textAlign: 'center',
-    color: '#FF69B4', // Pink text
+    color: '#FF69B4',
+    opacity: 0.9,
   },
   startButton: {
     backgroundColor: '#FFB6C1', // Light pink button
@@ -193,11 +216,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF0F5', // Light pink background
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#FFB6C1',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 20,
+    padding: 15,
+    borderRadius: 12,
     backgroundColor: 'white',
+    fontSize: 16,
+    color: '#333',
   },
 });

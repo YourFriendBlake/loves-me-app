@@ -1,8 +1,8 @@
 import { ZodiacSign } from '../Types';
 
-// Generate a random number of petals (5-12 is typical for daisies)
+// Generate a random number of petals (10-16)
 export const generatePetalCount = (): number => {
-  return Math.floor(Math.random() * 8) + 5; // 5 to 12 petals
+  return Math.floor(Math.random() * 7) + 10; // 10 to 16 petals
 };
 
 // Determine the final result based on petal count

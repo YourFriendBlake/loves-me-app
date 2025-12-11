@@ -1,8 +1,15 @@
 // components/ZodiacSelector.tsx
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { ZodiacSign } from '../Types';
 import { zodiacData } from '../Utils/zodiacData';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const GRID_COLUMNS = 4;
+const GRID_PADDING = 20; // Total horizontal padding (10 on each side)
+const GRID_GAP = 8;
+// Calculate button width accounting for margins on both sides (GRID_GAP/2 each side = GRID_GAP total per button)
+const BUTTON_WIDTH = (SCREEN_WIDTH - GRID_PADDING - (GRID_GAP * GRID_COLUMNS)) / GRID_COLUMNS;
 
 interface ZodiacSelectorProps {
   title: string;
@@ -15,38 +22,60 @@ const ZodiacSelector: React.FC<ZodiacSelectorProps> = ({
   selectedSign,
   onSelect
 }) => {
+  const [isGridVisible, setIsGridVisible] = useState(false);
+
   const getEmoji = (element: string): string => {
     switch (element) {
       case 'Fire': return '🔥';
-      case 'Earth': return '🌱';
-      case 'Air': return '🌬️';
+      case 'Earth': return '🪨';
+      case 'Air': return '💨';
       case 'Water': return '💧';
       default: return '✨';
     }
   };
+
+  const zodiacSigns = Object.values(zodiacData);
   
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.signsContainer}>
-          {Object.values(zodiacData).map((zodiac) => (
+      <View style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setIsGridVisible(!isGridVisible)}
+        >
+          <Text style={styles.toggleButtonText}>
+            {isGridVisible ? '▼' : '▶'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      
+      {isGridVisible && (
+        <View style={styles.gridContainer}>
+          {zodiacSigns.map((zodiac) => (
             <TouchableOpacity
               key={zodiac.name}
               style={[
-                styles.signButton,
+                styles.gridButton,
                 selectedSign === zodiac.name && styles.selectedSign,
-                { borderColor: selectedSign === zodiac.name ? '#FF6B6B' : '#ccc' }
+                { 
+                  borderColor: selectedSign === zodiac.name ? '#FF6B6B' : '#ccc',
+                }
               ]}
               onPress={() => onSelect(zodiac.name)}
             >
-              <Text style={styles.emoji}>{getEmoji(zodiac.element)}</Text>
-              <Text style={styles.signName}>{zodiac.name}</Text>
-              <Text style={styles.dateRange}>{zodiac.dateRange}</Text>
+              <Text style={styles.gridEmoji}>{getEmoji(zodiac.element)}</Text>
+              <Text 
+                style={styles.gridSignName}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {zodiac.name}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      )}
     </View>
   );
 };
@@ -55,24 +84,52 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 10,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 10,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
-    marginLeft: 10,
+    color: '#FF69B4',
   },
-  signsContainer: {
+  toggleButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#FFB6C1',
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    color: 'white',
+    fontWeight: '600',
+  },
+  gridContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  signButton: {
+  gridButton: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 12,
-    padding: 12,
-    marginRight: 10,
-    width: 100,
+    padding: 10,
+    paddingVertical: 12,
+    width: BUTTON_WIDTH,
     alignItems: 'center',
+    marginBottom: 8,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    minHeight: 70,
+    marginHorizontal: GRID_GAP / 2,
   },
   selectedSign: {
     backgroundColor: 'rgba(255, 107, 107, 0.1)',
@@ -82,15 +139,19 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 4,
   },
+  gridEmoji: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
   signName: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  dateRange: {
-    fontSize: 10,
-    color: '#666',
+  gridSignName: {
+    fontSize: 12,
+    fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 4,
+    width: '100%',
   },
 });
 

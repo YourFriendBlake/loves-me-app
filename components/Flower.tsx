@@ -1,10 +1,12 @@
 // components/Flower.tsx
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text, Image, Dimensions } from 'react-native';
 import Petal from './Petal';
 import { ZodiacSign } from '../Types';
 import { determineResult } from '../Utils/flowerUtils';
 import { zodiacData } from '../Utils/zodiacData';
+
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface FlowerProps {
   petalCount: number;
@@ -22,7 +24,8 @@ const Flower: React.FC<FlowerProps> = ({
   onComplete 
 }) => {
   const [removedPetals, setRemovedPetals] = useState<number[]>([]);
-  const [currentState, setCurrentState] = useState<'loves' | 'loves not'>('loves');
+  const [currentState, setCurrentState] = useState<'loves' | 'loves not' | null>(null);
+  const [hasCompleted, setHasCompleted] = useState(false);
   
   const getPetalPosition = (index: number) => {
     const angleStep = 360 / petalCount;
@@ -32,26 +35,61 @@ const Flower: React.FC<FlowerProps> = ({
   };
 
   const handlePetalRemove = (index: number) => {
-    if (!removedPetals.includes(index)) {
-      const newRemovedPetals = [...removedPetals, index];
-      setRemovedPetals(newRemovedPetals);
-      setCurrentState(prev => prev === 'loves' ? 'loves not' : 'loves');
-      
-      // Check if this was the last petal
-      if (newRemovedPetals.length === petalCount) {
+    setRemovedPetals(prev => {
+      // Only add if not already removed
+      if (prev.includes(index)) {
+        return prev;
+      }
+      const newRemovedPetals = [...prev, index];
+      // First petal removal shows "loves me", then toggle for subsequent removals
+      setCurrentState(prevState => {
+        if (prevState === null) {
+          return 'loves'; // First removal shows "loves me"
+        }
+        return prevState === 'loves' ? 'loves not' : 'loves';
+      });
+      return newRemovedPetals;
+    });
+  };
+
+  // Reset completion state when petalCount changes
+  useEffect(() => {
+    setRemovedPetals([]);
+    setCurrentState(null);
+    setHasCompleted(false);
+  }, [petalCount]);
+
+  // Check if all petals have been removed
+  useEffect(() => {
+    if (removedPetals.length === petalCount && !hasCompleted && petalCount > 0) {
+      setHasCompleted(true);
+      // Wait a bit to ensure the last petal's animation has fully completed
+      setTimeout(() => {
         const result = determineResult(petalCount, userSign, crushSign);
         onComplete(result);
-      }
+      }, 500); // Delay to ensure petal has fully fallen off screen
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [removedPetals.length, petalCount, hasCompleted]);
   
   return (
     <View style={styles.container}>
-      <Text style={styles.status}>
-        {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
-      </Text>
+      {currentState && (
+        <Text style={styles.status}>
+          {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
+        </Text>
+      )}
       
-      <View style={styles.flowerContainer}>
+      {/* Stem - positioned relative to screen to reach bottom */}
+      <View style={styles.stemContainer} pointerEvents="none">
+        <Image 
+          source={require('../assets/Stem.png')} 
+          style={styles.stemImage}
+          resizeMode="contain"
+        />
+      </View>
+      
+      <View style={styles.flowerContainer} pointerEvents="box-none">
         {/* Petals */}
         {Array.from({ length: petalCount }).map((_, index) => (
           <Petal
@@ -64,11 +102,13 @@ const Flower: React.FC<FlowerProps> = ({
         ))}
         
         {/* Center of the flower - rendered last to appear on top */}
-        <Image 
-          source={require('../assets/Flower.png')} 
-          style={styles.flowerImage}
-          resizeMode="contain"
-        />
+        <View style={styles.flowerImageContainer} pointerEvents="none">
+          <Image 
+            source={require('../assets/Flower.png')} 
+            style={styles.flowerImage}
+            resizeMode="contain"
+          />
+        </View>
       </View>
     </View>
   );
@@ -81,9 +121,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   status: {
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 35,
     fontStyle: 'italic',
+    position: 'absolute',
+    top: 130, // Adjust this value to move text up or down
+    alignSelf: 'center',
+    zIndex: 10,
   },
   flowerContainer: {
     width: 720,
@@ -91,11 +134,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  flowerImage: {
-    width: 270,
-    height: 270,
+  stemContainer: {
     position: 'absolute',
-    zIndex: 10,
+    top: SCREEN_HEIGHT / 2.1, // Flower center is at screen center (container is centered)
+    left: SCREEN_WIDTH / 1 - 85, // Center horizontally: screen center minus half width
+    width: 150,
+    height: SCREEN_HEIGHT / 2, // Extend from flower center to bottom of screen
+    zIndex: 1, // Behind petals and flower
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    transform: [{ rotate: '15deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')
+  },
+  stemImage: {
+    width: 225,
+    height: SCREEN_HEIGHT / 2.6, // Match container height
+  },
+  flowerImageContainer: {
+    width: 75,
+    height: 75,
+    position: 'absolute',
+    zIndex: 2000, // Higher than any petal (even when dragging at zIndex 1000)
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flowerImage: {
+    width: 75,
+    height: 75,
   },
 });
 

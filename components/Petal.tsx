@@ -1,12 +1,16 @@
 import React from 'react';
-import { StyleSheet, Image, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Image, Dimensions } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withTiming,
   withSpring,
+  withDecay,
+  withSequence,
+  withDelay,
   Easing,
-  runOnJS
+  runOnJS,
+  cancelAnimation
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
@@ -20,46 +24,38 @@ interface PetalProps {
 }
 
 const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved }) => {
+  // Petal distance from the center of the flower
+  const RADIUS = 100;
+
+  // Convert angle (deg) to radians
+  const angleRad = (angle * Math.PI) / 180;
+
+  // Base world position of the petal BEFORE dragging
+  const baseTranslateX = Math.cos(angleRad) * RADIUS;
+  const baseTranslateY = Math.sin(angleRad) * RADIUS;
+  
   const opacity = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
+  const translateX = useSharedValue(baseTranslateX);
+  const translateY = useSharedValue(baseTranslateY);
+  const rotation = useSharedValue(0);
   const isDragging = useSharedValue(false);
   const isActive = useSharedValue(false);
-  
-  // Convert angle to radians for calculations
-  const angleRad = (angle * Math.PI) / 180;
-  
-  // Calculate the direction vector
-  const directionX = Math.sin(angleRad);
-  const directionY = -Math.cos(angleRad);
-  
-  // Calculate the distance to move (enough to go off screen)
-  const distance = Math.max(SCREEN_WIDTH, SCREEN_HEIGHT) * 1.5;
-  
-  // Calculate the base position for the petal
-  const baseTranslateX = 100;
-  const baseTranslateY = 0;
+  const isFalling = useSharedValue(false);
   
   React.useEffect(() => {
-    if (isRemoved) {
-      try {
-        opacity.value = withTiming(0, { 
-          duration: 500,
-          easing: Easing.ease
-        });
-        
-        translateX.value = withTiming(directionX * distance, {
-          duration: 400,
-          easing: Easing.ease
-        });
-        
-        translateY.value = withTiming(directionY * distance, {
-          duration: 400,
-          easing: Easing.ease
-        });
-      } catch (error) {
-        console.error('Error in removal animation:', error);
-      }
+    translateX.value = baseTranslateX;
+    translateY.value = baseTranslateY;
+    // reset rotation/opacity if needed
+  }, [baseTranslateX, baseTranslateY]);
+
+  React.useEffect(() => {
+    if (isRemoved && !isFalling.value) {
+      // If removed by external trigger (not by dragging), use original animation
+      isFalling.value = true;
+      opacity.value = withTiming(0, { 
+        duration: 500,
+        easing: Easing.ease
+      });
     }
   }, [isRemoved]);
   
@@ -70,80 +66,163 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved }) => {
       console.error('Error in handleRemove:', error);
     }
   };
+
+  const triggerRemoveCallback = () => {
+    'worklet';
+    runOnJS(handleRemove)();
+  };
+
+  const startFallingAnimation = () => {
+    'worklet';
+    isFalling.value = true;
+    
+    // Register removal immediately when petal starts falling off screen
+    triggerRemoveCallback();
+    
+    // Calculate current velocity from drag (simplified)
+    const velocityX = translateX.value * 0.1;
+    
+    // Add rotation while falling (spinning effect)
+    rotation.value = withDecay({
+      velocity: Math.random() * 5 - 2.5, // Random rotation velocity between -2.5 and 2.5
+      deceleration: 0.995,
+      clamp: [0, 360]
+    });
+    
+    // Horizontal decay (sideways movement)
+    translateX.value = withDecay({
+      velocity: velocityX,
+      deceleration: 0.998,
+      clamp: [-SCREEN_WIDTH * 2, SCREEN_WIDTH * 2]
+    });
+    
+    // Gravity effect - accelerate downward
+    // Calculate how far down the screen to fall
+    const fallDistance = SCREEN_HEIGHT + 500; // Fall off screen with buffer
+    const fallDuration = 1500 + Math.random() * 500; // Randomize fall time slightly
+    
+    translateY.value = withTiming(
+      fallDistance,
+      {
+        duration: fallDuration,
+        easing: Easing.bezier(0.33, 1, 0.68, 1), // Acceleration curve (gravity)
+      }
+    );
+    
+    // Fade out as it falls
+    opacity.value = withSequence(
+      withTiming(0.8, { duration: 200 }), // Slight fade
+      withDelay(800, withTiming(0, { duration: 500 })) // Fade out near bottom
+    );
+  };
   
   const gesture = Gesture.Pan()
+    .hitSlop({ top: 15, bottom: 15, left: 15, right: 15 }) // Extra padding for easier touch detection
+    .activeOffsetX([-2, 2]) // Reduced threshold for more responsive activation
+    .activeOffsetY([-2, 2])
     .onBegin(() => {
-      if (isRemoved) return;
+      if (isRemoved || isFalling.value) return;
+      
+      // Cancel any existing animations
+      cancelAnimation(translateX);
+      cancelAnimation(translateY);
+      cancelAnimation(rotation);
+      
       isActive.value = true;
       isDragging.value = true;
-      opacity.value = withTiming(0.7);
+      
+      // Slight visual feedback when starting to drag
+      opacity.value = withTiming(0.85, { duration: 100 });
     })
     .onUpdate((e) => {
-      if (isRemoved || !isActive.value) return;
-      translateX.value = e.translationX;
-      translateY.value = e.translationY;
+      if (isRemoved || !isActive.value || isFalling.value) return;
+      
+      translateX.value = baseTranslateX + e.translationX;
+      translateY.value = baseTranslateY + e.translationY;
+      
+      // Add slight rotation based on drag direction for realism
+      const dragAngle = Math.atan2(e.translationY, e.translationX);
+      rotation.value = (dragAngle * 180) / Math.PI * 0.3; // Scale rotation
     })
     .onEnd((e) => {
-      if (isRemoved || !isActive.value) return;
+      if (isRemoved || !isActive.value || isFalling.value) return;
+      
       isDragging.value = false;
       isActive.value = false;
       
       try {
+        // Calculate drag distance from origin
         const dragDistance = Math.sqrt(
           e.translationX * e.translationX + 
           e.translationY * e.translationY
         );
         
-        if (dragDistance > 100) {
-          runOnJS(handleRemove)();
+        // Threshold for removal - if dragged far enough, make it fall
+        if (dragDistance > 80) {
+          // Petal was pulled far enough - start falling animation
+          startFallingAnimation();
         } else {
-          opacity.value = withTiming(1);
-          translateX.value = withSpring(0, {
-            damping: 15,
-            stiffness: 100
+          // Snapped back - return to origin with spring
+          opacity.value = withTiming(1, { duration: 200 });
+          rotation.value = withSpring(0, {
+            damping: 20,
+            stiffness: 150
           });
-          translateY.value = withSpring(0, {
+          translateX.value = withSpring(baseTranslateX, {
             damping: 15,
-            stiffness: 100
+            stiffness: 120
+          });
+          translateY.value = withSpring(baseTranslateY, {
+            damping: 15,
+            stiffness: 120
           });
         }
       } catch (error) {
         console.error('Error in gesture end handler:', error);
         opacity.value = withTiming(1);
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
+        translateX.value = withSpring(baseTranslateX);
+        translateY.value = withSpring(baseTranslateY);
+        rotation.value = withSpring(0);
       }
     })
     .onFinalize(() => {
-      isActive.value = false;
-      isDragging.value = false;
+      if (!isFalling.value) {
+        isActive.value = false;
+        isDragging.value = false;
+      }
     });
   
   const animatedStyle = useAnimatedStyle(() => {
     return {
       opacity: opacity.value,
+      zIndex: isDragging.value ? 1000 : index + 10, // Bring dragged petal to front
       transform: [
-        { rotate: `${angle}deg` },
-        { translateX: baseTranslateX + translateX.value },
-        { translateY: baseTranslateY + translateY.value }
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { rotate: `${angle + rotation.value}deg` }, // Combine base angle with rotation
       ]
     };
   });
   
   const imageStyle = {
-    transform: [{ rotate: '45deg' }]
+    transform: [{ rotate: '90deg' }]
   };
 
   return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.petalContainer, animatedStyle]}>
-        <Image 
-          source={require('../assets/Petal.png')}
-          style={[styles.petalImage, imageStyle]}
-          resizeMode="contain"
-        />
-      </Animated.View>
-    </GestureDetector>
+    <Animated.View 
+      style={[styles.petalContainer, animatedStyle]}
+      pointerEvents={isRemoved ? 'none' : 'box-none'}
+    >
+      <GestureDetector gesture={gesture}>
+        <Animated.View style={styles.touchableArea} pointerEvents="auto">
+          <Image 
+            source={require('../assets/Petal.png')}
+            style={[styles.petalImage, imageStyle]}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      </GestureDetector>
+    </Animated.View>
   );
 };
 
@@ -151,7 +230,14 @@ const styles = StyleSheet.create({
   petalContainer: {
     position: 'absolute',
     width: 720,
-    height: 315,
+    height: 720,
+    justifyContent: 'center',
+    alignItems: 'center',
+    pointerEvents: 'box-none', // Allow touches to pass through empty areas
+  },
+  touchableArea: {
+    width: 378, // Match petal image size exactly
+    height: 162,
     justifyContent: 'center',
     alignItems: 'center',
   },
