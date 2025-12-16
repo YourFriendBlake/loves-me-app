@@ -139,7 +139,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
       
       // Set volume to maximum and pitch (via playback rate)
       await sound.setVolumeAsync(1.0);
-      await sound.setRateAsync(5, true); // Higher pitch
+      await sound.setRateAsync(4.5, true); // Higher pitch
       const playbackStatus = await sound.playAsync();
       if (playbackStatus.isLoaded) {
         console.log('Sound playback started:', playbackStatus.isLoaded, playbackStatus.isPlaying);

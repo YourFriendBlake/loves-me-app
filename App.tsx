@@ -1,6 +1,6 @@
 // App.tsx
 import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image } from 'react-native';
+import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image, ImageBackground } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ZodiacSign } from './Types';
@@ -143,36 +143,46 @@ export default function App() {
   
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="auto" />
-        
-        {gameState === 'setup' && renderSetupScreen()}
-        {gameState === 'playing' && (
-          <View style={styles.gameScreenContainer}>
-            {/* Sound icon button in top right for game screen too */}
-            <TouchableOpacity
-              style={styles.soundIconButton}
-              onPress={() => setSoundEnabled(!soundEnabled)}
-            >
-              <Image
-                source={require('./assets/SoundIcon.png')}
-                style={[styles.soundIcon, !soundEnabled && styles.soundIconOff]}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-            {renderGameScreen()}
-          </View>
-        )}
-        {gameState === 'result' && renderResultScreen()}
-      </SafeAreaView>
+      <ImageBackground
+        source={require('./assets/SkyBlueBackground.png')}
+        style={styles.background}
+        resizeMode="cover"
+        imageStyle={{ transform: [{ scale: 1.15 }] }}
+      >
+        <SafeAreaView style={styles.container}>
+          <StatusBar style="auto" />
+          
+          {gameState === 'setup' && renderSetupScreen()}
+          {gameState === 'playing' && (
+            <View style={styles.gameScreenContainer}>
+              {/* Sound icon button in top right for game screen too */}
+              <TouchableOpacity
+                style={styles.soundIconButton}
+                onPress={() => setSoundEnabled(!soundEnabled)}
+              >
+                <Image
+                  source={require('./assets/SoundIcon.png')}
+                  style={[styles.soundIcon, !soundEnabled && styles.soundIconOff]}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              {renderGameScreen()}
+            </View>
+          )}
+          {gameState === 'result' && renderResultScreen()}
+        </SafeAreaView>
+      </ImageBackground>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#FFF0F5', // Light pink background
+    backgroundColor: 'transparent',
   },
   setupScreenContainer: {
     flex: 1,
@@ -204,13 +214,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#FF69B4',
+    color: '#4169E1', // Royal blue
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#FF69B4',
+    color: '#4169E1',
     opacity: 0.8,
   },
   inputSection: {
@@ -227,15 +237,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
     textAlign: 'center',
-    color: '#FF69B4',
+    color: '#4169E1',
     opacity: 0.9,
   },
   startButton: {
-    backgroundColor: '#FFB6C1', // Light pink button
+    backgroundColor: '#4169E1', // Royal blue button
     paddingVertical: 15,
     borderRadius: 30,
     marginTop: 30,
-    shadowColor: '#FFB6C1',
+    shadowColor: '#4169E1',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -245,7 +255,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   disabledButton: {
-    backgroundColor: '#FFD1DC', // Lighter pink for disabled state
+    backgroundColor: '#9BB4F7', // Lighter blue for disabled state
   },
   startButtonText: {
     color: 'white',
@@ -257,11 +267,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF0F5', // Light pink background
+    // Let the Flower screen control its own background image
+    backgroundColor: 'transparent',
   },
   input: {
     borderWidth: 2,
-    borderColor: '#FFB6C1',
+    borderColor: '#4169E1',
     padding: 15,
     borderRadius: 12,
     backgroundColor: 'white',

@@ -98,13 +98,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF69B4',
+    color: '#4169E1', // Royal blue
   },
   toggleButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#FFB6C1',
+    backgroundColor: '#4169E1',
     minWidth: 60,
     alignItems: 'center',
     justifyContent: 'center',
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   gridButton: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#4169E1',
     borderRadius: 12,
     padding: 10,
     paddingVertical: 12,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     marginHorizontal: GRID_GAP / 2,
   },
   selectedSign: {
-    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    backgroundColor: 'rgba(65, 105, 225, 0.12)',
     borderWidth: 2,
   },
   emoji: {

@@ -52,87 +52,86 @@ const Flower: React.FC<FlowerProps> = ({
         }
         return prevState === 'loves' ? 'loves not' : 'loves';
       });
+      
+      // Check if all petals are removed
+      if (newRemovedPetals.length === petalCount && petalCount > 0) {
+        // Use setTimeout to ensure the last petal animation completes
+        setTimeout(() => {
+          setHasCompleted(true);
+          const result = determineResult(petalCount, userSign, crushSign);
+          onComplete(result);
+        }, 600);
+      }
+      
       return newRemovedPetals;
     });
   };
-
   // Reset completion state when petalCount changes
   useEffect(() => {
     setRemovedPetals([]);
     setCurrentState(null);
     setHasCompleted(false);
   }, [petalCount]);
-
-  // Check if all petals have been removed
-  useEffect(() => {
-    if (removedPetals.length === petalCount && !hasCompleted && petalCount > 0) {
-      setHasCompleted(true);
-      // Wait a bit to ensure the last petal's animation has fully completed
-      setTimeout(() => {
-        const result = determineResult(petalCount, userSign, crushSign);
-        onComplete(result);
-      }, 500); // Delay to ensure petal has fully fallen off screen
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [removedPetals.length, petalCount, hasCompleted]);
   
   return (
     <View style={styles.container}>
-      {currentState && (
-        <View style={styles.statusContainer}>
-          <Text style={styles.status} numberOfLines={2}>
-            {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
-          </Text>
-        </View>
-      )}
-      
-      {/* Stem - positioned relative to screen to reach bottom */}
-      <View style={styles.stemContainer} pointerEvents="none">
-        <Image 
-          source={require('../assets/Stem.png')} 
-          style={styles.stemImage}
-          resizeMode="contain"
-        />
-      </View>
-      
-      <View
-        style={styles.flowerContainer}
-        pointerEvents="box-none"
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          setFlowerSize({ width, height });
-        }}
-      >
-        {/* Petals */}
-        {Array.from({ length: petalCount }).map((_, index) => (
-          <Petal
-            key={index}
-            angle={getPetalPosition(index)}
-            onRemove={() => handlePetalRemove(index)}
-            index={index}
-            isRemoved={removedPetals.includes(index)}
-            center={{ x: flowerSize.width / 2, y: flowerSize.height / 2 }}
-            // Place the petal base on the rim of the yellow center,
-            // with a tiny margin so petals don't overlap the center art.
-            radius={(centerSize.width / 2) - 10}
-            soundEnabled={soundEnabled}
-          />
-        ))}
+      <View style={styles.content}>
+        {currentState && (
+          <View style={styles.statusContainer}>
+            <Text style={styles.status} numberOfLines={2}>
+              {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
+            </Text>
+          </View>
+        )}
         
-        {/* Center of the flower - rendered last to appear on top */}
-        <View
-          style={styles.flowerImageContainer}
-          pointerEvents="none"
-          onLayout={(e) => {
-            const { width, height } = e.nativeEvent.layout;
-            setCenterSize({ width, height });
-          }}
-        >
+        {/* Stem - positioned relative to screen to reach bottom */}
+        <View style={styles.stemContainer} pointerEvents="none">
           <Image 
-            source={require('../assets/Flower.png')} 
-            style={styles.flowerImage}
+            source={require('../assets/Stem.png')} 
+            style={styles.stemImage}
             resizeMode="contain"
           />
+        </View>
+        
+        <View
+          style={styles.flowerContainer}
+          pointerEvents="box-none"
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setFlowerSize({ width, height });
+          }}
+        >
+          {/* Petals */}
+          {Array.from({ length: petalCount }).map((_, index) => (
+            <Petal
+              key={index}
+              angle={getPetalPosition(index)}
+              onRemove={() => handlePetalRemove(index)}
+              index={index}
+              isRemoved={removedPetals.includes(index)}
+              center={{ x: flowerSize.width / 2, y: flowerSize.height / 2 }}
+              // Place the petal base on the rim of the yellow center,
+              // with a tiny margin so petals don't overlap the center art.
+              radius={(centerSize.width / 2) - 10}
+              soundEnabled={soundEnabled}
+            />
+          ))}
+          
+          {/* Center of the flower - rendered last to appear on top */}
+          <View
+            style={styles.flowerImageContainer}
+            pointerEvents="none"
+            onLayout={(e) => {
+              const { width, height } = e.nativeEvent.layout;
+              setCenterSize({ width, height });
+            }}
+          >
+            <Image 
+              source={require('../assets/Flower.png')} 
+              style={styles.flowerImage}
+              resizeMode="contain"
+            />
+          </View>
         </View>
       </View>
     </View>
@@ -141,6 +140,11 @@ const Flower: React.FC<FlowerProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -170,7 +174,8 @@ const styles = StyleSheet.create({
   stemContainer: {
     position: 'absolute',
     top: SCREEN_HEIGHT / 2.1, // Flower center is at screen center (container is centered)
-    left: SCREEN_WIDTH / 1 - 85, // Center horizontally: screen center minus half width
+    // Center horizontally: screen center minus half stem container width
+    left: SCREEN_WIDTH / 1 - 90,
     width: 150,
     height: SCREEN_HEIGHT / 2, // Extend from flower center to bottom of screen
     zIndex: 0, // Behind petals (which start at zIndex 10) and flower center

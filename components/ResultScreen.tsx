@@ -21,6 +21,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
 }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
+  const [isHeartLarge, setIsHeartLarge] = React.useState(false);
   
   // Initialize audio mode
   useEffect(() => {
@@ -90,6 +91,17 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
       }),
     ]).start();
   }, []);
+
+  // Heart "frame cut" size change: toggle between normal and 1.5x every second
+  useEffect(() => {
+    if (!result) return; // Only toggle when showing the heart
+
+    const intervalId = setInterval(() => {
+      setIsHeartLarge(prev => !prev);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [result]);
   
   return (
     <View style={styles.container}>
@@ -98,16 +110,23 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           styles.resultContainer,
           {
             opacity: fadeAnim,
+            // Only apply the entrance scale to the whole container
             transform: [{ scale: scaleAnim }],
           }
         ]}
       >
         {result ? (
-          <Image 
-            source={require('../assets/Heart.png')} 
-            style={styles.heartImage}
-            resizeMode="contain"
-          />
+          <View
+            style={{
+              transform: [{ scale: isHeartLarge ? 1.5 : 1 }],
+            }}
+          >
+            <Image 
+              source={require('../assets/Heart.png')} 
+              style={styles.heartImage}
+              resizeMode="contain"
+            />
+          </View>
         ) : (
           <Image 
             source={require('../assets/WiltedFlower.png')} 
@@ -136,15 +155,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF0F5', // Light pink background
+    backgroundColor: 'transparent',
     padding: 20,
   },
   resultContainer: {
-    backgroundColor: '#FFE4E1', // Light pink container
+    backgroundColor: '#E0F3FF', // Light sky-blue container
     padding: 30,
     borderRadius: 20,
     alignItems: 'center',
-    shadowColor: '#FFB6C1',
+    shadowColor: '#4169E1',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -160,10 +179,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   positiveResult: {
-    color: '#FF1493', // Deep pink for positive
+    color: '#4169E1', // Royal blue for positive
   },
   negativeResult: {
-    color: '#8B7D8B', // Muted purple for negative
+    color: '#1F3B70', // Darker blue for negative
   },
   heartImage: {
     width: 150,
@@ -176,7 +195,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   playAgainButton: {
-    backgroundColor: '#FFB6C1', // Light pink button
+    backgroundColor: '#4169E1', // Royal blue button
     padding: 15,
     borderRadius: 25,
     marginTop: 20,

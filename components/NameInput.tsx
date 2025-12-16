@@ -37,10 +37,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     fontWeight: '500',
+    color: '#4169E1', // Royal blue
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#4169E1',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
