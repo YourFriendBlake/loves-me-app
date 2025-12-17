@@ -84,6 +84,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
   const isDragging = useSharedValue(false);
   const isActive = useSharedValue(false);
   const isFalling = useSharedValue(false);
+  const hasPlayedSound = useSharedValue(false);
 
   // Re-center if angle/center/radius change
   React.useEffect(() => {
@@ -241,6 +242,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
       
       isActive.value = true;
       isDragging.value = true;
+      hasPlayedSound.value = false; // Reset sound flag for new drag
       
       // Bring this petal to front when activated
       // Slight visual feedback when starting to drag
@@ -252,6 +254,19 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
       // Drag relative to base world position
       translateX.value = baseX + e.translationX;
       translateY.value = baseY + e.translationY;
+      
+      // Calculate drag distance from origin
+      const dragDistance = Math.sqrt(
+        e.translationX * e.translationX + 
+        e.translationY * e.translationY
+      );
+      
+      // Play pop sound once when petal is pulled past the return distance threshold
+      const RETURN_DISTANCE = 10;
+      if (dragDistance > RETURN_DISTANCE && !hasPlayedSound.value) {
+        hasPlayedSound.value = true;
+        triggerPopSound();
+      }
       
       // Add slight rotation based on drag direction for realism
       const dragAngle = Math.atan2(e.translationY, e.translationX);
@@ -272,8 +287,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
         
         // Threshold for removal - if dragged far enough, make it fall
         if (dragDistance > 10) {
-          // Play pop sound when petal is pulled past threshold
-          triggerPopSound();
+          // Sound should have already played during onUpdate when crossing threshold
           // Petal was pulled far enough - start falling animation
           // startFallingAnimation will call triggerRemoveCallback
           startFallingAnimation();

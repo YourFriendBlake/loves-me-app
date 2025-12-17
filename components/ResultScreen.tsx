@@ -1,6 +1,6 @@
 // components/ResultScreen.tsx
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Animated, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Animated, Image, ImageBackground } from 'react-native';
 import { Audio } from 'expo-av';
 import { ZodiacSign } from '../Types';
 
@@ -102,7 +102,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
 
     return () => clearInterval(intervalId);
   }, [result]);
-  
+
   return (
     <View style={styles.container}>
       <Animated.View 
@@ -110,41 +110,45 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
           styles.resultContainer,
           {
             opacity: fadeAnim,
-            // Only apply the entrance scale to the whole container
-            transform: [{ scale: scaleAnim }],
           }
         ]}
       >
-        {result ? (
-          <View
-            style={{
-              transform: [{ scale: isHeartLarge ? 1.5 : 1 }],
-            }}
-          >
+        <ImageBackground
+          source={require('../assets/Crumpled paper.jpeg')}
+          style={styles.paperBackground}
+          resizeMode="cover"
+        >
+          {result ? (
+            <View
+              style={{
+                transform: [{ scale: isHeartLarge ? 1.5 : 1 }],
+              }}
+            >
+              <Image 
+                source={require('../assets/Heart.png')} 
+                style={styles.heartImage}
+                resizeMode="contain"
+              />
+            </View>
+          ) : (
             <Image 
-              source={require('../assets/Heart.png')} 
-              style={styles.heartImage}
+              source={require('../assets/WiltedFlower.png')} 
+              style={styles.wiltedFlowerImage}
               resizeMode="contain"
             />
-          </View>
-        ) : (
-          <Image 
-            source={require('../assets/WiltedFlower.png')} 
-            style={styles.wiltedFlowerImage}
-            resizeMode="contain"
-          />
-        )}
-        <Text style={[styles.resultText, result ? styles.positiveResult : styles.negativeResult]}>
-          {result ? `${name} loves you!` : `${name} loves you not.`}
-        </Text>
-        
-        <TouchableOpacity 
-          style={styles.playAgainButton} 
-          onPress={onPlayAgain}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.playAgainText}>Play Again</Text>
-        </TouchableOpacity>
+          )}
+          <Text style={[styles.resultText, result ? styles.positiveResult : styles.negativeResult]}>
+            {result ? `${name} loves you!` : `${name} loves you not.`}
+          </Text>
+          
+          <TouchableOpacity 
+            style={styles.playAgainButton} 
+            onPress={onPlayAgain}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.playAgainText}>Play Again</Text>
+          </TouchableOpacity>
+        </ImageBackground>
       </Animated.View>
     </View>
   );
@@ -159,9 +163,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   resultContainer: {
-    backgroundColor: '#E0F3FF', // Light sky-blue container
-    padding: 30,
-    borderRadius: 20,
     alignItems: 'center',
     shadowColor: '#4169E1',
     shadowOffset: {
@@ -171,6 +172,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  paperBackground: {
+    padding: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+    overflow: 'hidden', // Ensure the image respects borderRadius
   },
   resultText: {
     fontSize: 36,
