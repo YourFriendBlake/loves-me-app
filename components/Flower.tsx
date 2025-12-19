@@ -76,15 +76,7 @@ const Flower: React.FC<FlowerProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {currentState && (
-          <View style={styles.statusContainer}>
-            <Text style={styles.status} numberOfLines={2}>
-              {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
-            </Text>
-          </View>
-        )}
-        
-        {/* Stem - positioned relative to screen to reach bottom */}
+        {/* Stem - positioned relative to screen to reach bottom - rendered first to be behind everything */}
         <View style={styles.stemContainer} pointerEvents="none">
           <Image 
             source={require('../assets/Stem.png')} 
@@ -101,23 +93,7 @@ const Flower: React.FC<FlowerProps> = ({
             setFlowerSize({ width, height });
           }}
         >
-          {/* Petals */}
-          {Array.from({ length: petalCount }).map((_, index) => (
-            <Petal
-              key={index}
-              angle={getPetalPosition(index)}
-              onRemove={() => handlePetalRemove(index)}
-              index={index}
-              isRemoved={removedPetals.includes(index)}
-              center={{ x: flowerSize.width / 2, y: flowerSize.height / 2 }}
-              // Place the petal base on the rim of the yellow center,
-              // with a tiny margin so petals don't overlap the center art.
-              radius={(centerSize.width / 2) - 10}
-              soundEnabled={soundEnabled}
-            />
-          ))}
-          
-          {/* Center of the flower - rendered last to appear on top */}
+          {/* Flower center - rendered before petals to be behind them */}
           <View
             style={styles.flowerImageContainer}
             pointerEvents="none"
@@ -132,7 +108,31 @@ const Flower: React.FC<FlowerProps> = ({
               resizeMode="contain"
             />
           </View>
+          
+          {/* Petals - rendered last to appear on top */}
+          {Array.from({ length: petalCount }).map((_, index) => (
+            <Petal
+              key={index}
+              angle={getPetalPosition(index)}
+              onRemove={() => handlePetalRemove(index)}
+              index={index}
+              isRemoved={removedPetals.includes(index)}
+              center={{ x: flowerSize.width / 2, y: flowerSize.height / 2 }}
+              // Place the petal base on the rim of the yellow center,
+              // with a tiny margin so petals don't overlap the center art.
+              radius={(centerSize.width / 2) - 10}
+              soundEnabled={soundEnabled}
+            />
+          ))}
         </View>
+        
+        {currentState && (
+          <View style={styles.statusContainer}>
+            <Text style={styles.status} numberOfLines={2}>
+              {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
     height: 720,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1, // Above stem container
   },
   stemContainer: {
     position: 'absolute',
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     left: SCREEN_WIDTH / 1 - 90,
     width: 150,
     height: SCREEN_HEIGHT / 2, // Extend from flower center to bottom of screen
-    zIndex: 0, // Behind petals (which start at zIndex 10) and flower center
+    zIndex: 0, // Behind flowerContainer (which has zIndex 1)
     justifyContent: 'flex-start',
     alignItems: 'center',
     transform: [{ rotate: '15deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')
