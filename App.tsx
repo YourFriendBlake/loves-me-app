@@ -1,6 +1,6 @@
 // App.tsx
-import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image, ImageBackground } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image, ImageBackground, Animated } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ZodiacSign } from './Types';
@@ -10,8 +10,40 @@ import { generatePetalCount } from './Utils/flowerUtils';
 import ZodiacSelector from './components/ZodiacSelector';
 import Flower from './components/Flower';
 import ResultScreen from './components/ResultScreen';
+import ImageText from './components/ImageText';
 
 export default function App() {
+  // Ref for hidden name input so tapping the paper can focus it
+  const nameInputRef = useRef<TextInput | null>(null);
+  
+  // Animated value for press effect on name paper
+  const namePaperScale = useRef(new Animated.Value(1)).current;
+  
+  // Calculate dynamic letter height based on name length
+  // Start large (45) for short names, scale down as name gets longer
+  const getLetterHeight = (text: string): number => {
+    const textLength = text.length;
+    const containerWidth = 188; // 220 (container) - 32 (padding: 16*2)
+    const letterSpacing = -4;
+    const letterAspectRatio = 0.8; // width is 80% of height
+    
+    // Start with larger size for short names
+    let baseHeight = 45;
+    
+    // Calculate if text would overflow
+    for (let height = baseHeight; height >= 25; height -= 1) {
+      const letterWidth = height * letterAspectRatio;
+      const totalWidth = textLength * (letterWidth + letterSpacing);
+      
+      if (totalWidth <= containerWidth) {
+        return height;
+      }
+    }
+    
+    // Minimum size
+    return 25;
+  };
+  
   // Game states
   const [gameState, setGameState] = useState<'setup' | 'playing' | 'result'>('setup');
   
@@ -77,14 +109,63 @@ export default function App() {
           </View>
           
           <View style={styles.inputSection}>
-          <TextInput
-            style={styles.input}
-            placeholder="Their name"
-            placeholderTextColor="#999"
-            value={crushName}
-            onChangeText={setCrushName}
-            maxLength={20}
-          />
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => nameInputRef.current?.focus()}
+              onPressIn={() => {
+                Animated.spring(namePaperScale, {
+                  toValue: 0.95,
+                  useNativeDriver: true,
+                  tension: 300,
+                  friction: 10,
+                }).start();
+              }}
+              onPressOut={() => {
+                Animated.spring(namePaperScale, {
+                  toValue: 1,
+                  useNativeDriver: true,
+                  tension: 300,
+                  friction: 10,
+                }).start();
+              }}
+            >
+              <Animated.View
+                style={[
+                  styles.namePaperContainer,
+                  { transform: [{ scale: namePaperScale }] }
+                ]}
+              >
+                <ImageBackground
+                  source={require('./assets/Torn-Paper.png')}
+                  style={styles.namePaper}
+                  imageStyle={styles.namePaperImage}
+                >
+                <View style={styles.namePaperContent}>
+                  {/* Display the name using custom letter images as the main visual */}
+                  <View style={styles.nameDisplay}>
+                    <ImageText 
+                      text={crushName.trim() === '' ? 'Write' : crushName.toUpperCase()} 
+                      letterHeight={getLetterHeight(crushName.trim() === '' ? 'Write' : crushName.toUpperCase())}
+                      letterSpacing={-4}
+                      fallbackStyle={styles.nameDisplayText}
+                    />
+                  </View>
+                  {/* Invisible TextInput overlay to capture typing while using the paper as the visual */}
+                  <TextInput
+                    ref={nameInputRef}
+                    style={styles.hiddenInput}
+                    placeholder="Their name"
+                    placeholderTextColor="transparent"
+                    value={crushName}
+                    onChangeText={setCrushName}
+                    maxLength={20}
+                    autoCorrect={false}
+                    autoCapitalize="words"
+                  />
+                </View>
+              </ImageBackground>
+              </Animated.View>
+            </TouchableOpacity>
           </View>
           
           <View style={styles.zodiacSection}>
@@ -227,6 +308,52 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
     paddingHorizontal: 0,
+    alignItems: 'center',
+  },
+  namePaperContainer: {
+    width: 400,
+    alignSelf: 'center',
+  },
+  namePaper: {
+    width: '100%',
+    aspectRatio: 2.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  namePaperImage: {
+    resizeMode: 'contain',
+  },
+  namePaperContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nameDisplay: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 60,
+    width: '100%',
+    paddingVertical: 8,
+  },
+  nameDisplayText: {
+    color: '#4169E1',
+    fontWeight: 'bold',
+    fontSize: 35,
+    textAlign: 'center',
+  },
+  hiddenInput: {
+    // Invisible but tappable input layered over the paper to capture typing
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0,
+    // Ensure there's a measurable size for touch/keyboard focus
+    height: '100%',
+    width: '100%',
   },
   zodiacSection: {
     marginBottom: 20,
@@ -297,5 +424,11 @@ const styles = StyleSheet.create({
   },
   soundIconOff: {
     opacity: 0.4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
   },
 });

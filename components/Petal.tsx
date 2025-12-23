@@ -59,7 +59,8 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
 
   // Scale so the petal fits the radius
   const FARTHEST_PX = Math.max(ANCHOR_X, PETAL_W - ANCHOR_X, ANCHOR_Y, PETAL_H - ANCHOR_Y);
-  const SCALE = Math.min(0.8, Math.max(0.05, (radius * 0.9) / FARTHEST_PX)) * 2;
+  // Make petals a bit smaller so they don't dominate the flower
+  const SCALE = Math.min(0.7, Math.max(0.09, (radius * 0.85) / FARTHEST_PX)) * 1.0;
 
   // image placement (base pixel at (0,0) of the pivot view)
   const imgW = PETAL_W * SCALE;
@@ -72,7 +73,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
   const tipOffsetY = (TIP_Y - ANCHOR_Y) * SCALE;
 
   // Point the petal tip away from the center
-  const ORIENTATION_OFFSET_DEG = 90;
+  const ORIENTATION_OFFSET_DEG = 85;
 
   // --- Base world position inside the flower container ---
   const angleRad = (angle * Math.PI) / 180;

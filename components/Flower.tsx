@@ -4,7 +4,6 @@ import { StyleSheet, View, Text, Image, Dimensions } from 'react-native';
 import Petal from './Petal';
 import { ZodiacSign } from '../Types';
 import { determineResult } from '../Utils/flowerUtils';
-import { zodiacData } from '../Utils/zodiacData';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -35,7 +34,7 @@ const Flower: React.FC<FlowerProps> = ({
     const angleStep = 360 / petalCount;
     const baseAngle = index * angleStep;
     // Add 90 degrees to rotate all petals
-    return baseAngle + 90;
+    return baseAngle + 95;
   };
 
   const handlePetalRemove = (index: number) => {
@@ -76,6 +75,14 @@ const Flower: React.FC<FlowerProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.content}>
+        {currentState && (
+          <View style={styles.statusContainer}>
+            <Text style={styles.status} numberOfLines={2}>
+              {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
+            </Text>
+          </View>
+        )}
+        
         {/* Stem - positioned relative to screen to reach bottom - rendered first to be behind everything */}
         <View style={styles.stemContainer} pointerEvents="none">
           <Image 
@@ -118,21 +125,13 @@ const Flower: React.FC<FlowerProps> = ({
               index={index}
               isRemoved={removedPetals.includes(index)}
               center={{ x: flowerSize.width / 2, y: flowerSize.height / 2 }}
-              // Place the petal base on the rim of the yellow center,
-              // with a tiny margin so petals don't overlap the center art.
-              radius={(centerSize.width / 2) - 10}
+              // Bring petals closer so their bases tuck right up against the center.
+              // Slightly inside the yellow center radius so they hug the flower.
+              radius={(centerSize.width / 2) - 20}
               soundEnabled={soundEnabled}
             />
           ))}
         </View>
-        
-        {currentState && (
-          <View style={styles.statusContainer}>
-            <Text style={styles.status} numberOfLines={2}>
-              {currentState === 'loves' ? `${name} loves me...` : `${name} loves me not...`}
-            </Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -166,39 +165,38 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
   },
   flowerContainer: {
-    width: 720,
-    height: 720,
+    width: 650,   // slightly smaller overall flower area
+    height: 650,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1, // Above stem container
   },
   stemContainer: {
     position: 'absolute',
-    top: SCREEN_HEIGHT / 2.1, // Flower center is at screen center (container is centered)
+    top: SCREEN_HEIGHT / 2.2, // Flower center is at screen center (container is centered)
     // Center horizontally: screen center minus half stem container width
-    left: SCREEN_WIDTH / 1 - 90,
+    left: SCREEN_WIDTH / 1.4 - 40,
     width: 150,
-    height: SCREEN_HEIGHT / 2, // Extend from flower center to bottom of screen
-    zIndex: 0, // Behind flowerContainer (which has zIndex 1)
+    height: SCREEN_HEIGHT / 2.1, // Extend from flower center to bottom of screen
+    zIndex: -1, // Behind everything (petals start at zIndex 10, flower center at 2000)
     justifyContent: 'flex-start',
     alignItems: 'center',
-    transform: [{ rotate: '15deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')
+    transform: [{ rotate: '10deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')
   },
   stemImage: {
     width: 225,
-    height: SCREEN_HEIGHT / 2.6, // Match container height
+    height: SCREEN_HEIGHT / 2.3, // Match container height
   },
   flowerImageContainer: {
-    width: 75,
-    height: 75,
+    width: 65,  // slightly smaller center flower
+    height: 65,
     position: 'absolute',
     zIndex: 2000, // Higher than any petal (even when dragging at zIndex 1000)
     justifyContent: 'center',
     alignItems: 'center',
   },
   flowerImage: {
-    width: 75,
-    height: 75,
+    width: 60,
+    height: 60,
   },
 });
 
