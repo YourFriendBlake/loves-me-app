@@ -1,6 +1,6 @@
 // App.tsx
-import React, { useState, useRef } from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image, ImageBackground, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, SafeAreaView, TouchableOpacity, Text, ScrollView, TextInput, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ZodiacSign } from './Types';
@@ -10,40 +10,8 @@ import { generatePetalCount } from './Utils/flowerUtils';
 import ZodiacSelector from './components/ZodiacSelector';
 import Flower from './components/Flower';
 import ResultScreen from './components/ResultScreen';
-import ImageText from './components/ImageText';
 
 export default function App() {
-  // Ref for hidden name input so tapping the paper can focus it
-  const nameInputRef = useRef<TextInput | null>(null);
-  
-  // Animated value for press effect on name paper
-  const namePaperScale = useRef(new Animated.Value(1)).current;
-  
-  // Calculate dynamic letter height based on name length
-  // Start large (45) for short names, scale down as name gets longer
-  const getLetterHeight = (text: string): number => {
-    const textLength = text.length;
-    const containerWidth = 188; // 220 (container) - 32 (padding: 16*2)
-    const letterSpacing = -4;
-    const letterAspectRatio = 0.8; // width is 80% of height
-    
-    // Start with larger size for short names
-    let baseHeight = 45;
-    
-    // Calculate if text would overflow
-    for (let height = baseHeight; height >= 25; height -= 1) {
-      const letterWidth = height * letterAspectRatio;
-      const totalWidth = textLength * (letterWidth + letterSpacing);
-      
-      if (totalWidth <= containerWidth) {
-        return height;
-      }
-    }
-    
-    // Minimum size
-    return 25;
-  };
-  
   // Game states
   const [gameState, setGameState] = useState<'setup' | 'playing' | 'result'>('setup');
   
@@ -109,63 +77,14 @@ export default function App() {
           </View>
           
           <View style={styles.inputSection}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => nameInputRef.current?.focus()}
-              onPressIn={() => {
-                Animated.spring(namePaperScale, {
-                  toValue: 0.95,
-                  useNativeDriver: true,
-                  tension: 300,
-                  friction: 10,
-                }).start();
-              }}
-              onPressOut={() => {
-                Animated.spring(namePaperScale, {
-                  toValue: 1,
-                  useNativeDriver: true,
-                  tension: 300,
-                  friction: 10,
-                }).start();
-              }}
-            >
-              <Animated.View
-                style={[
-                  styles.namePaperContainer,
-                  { transform: [{ scale: namePaperScale }] }
-                ]}
-              >
-                <ImageBackground
-                  source={require('./assets/Torn-Paper.png')}
-                  style={styles.namePaper}
-                  imageStyle={styles.namePaperImage}
-                >
-                <View style={styles.namePaperContent}>
-                  {/* Display the name using custom letter images as the main visual */}
-                  <View style={styles.nameDisplay}>
-                    <ImageText 
-                      text={crushName.trim() === '' ? 'Write' : crushName.toUpperCase()} 
-                      letterHeight={getLetterHeight(crushName.trim() === '' ? 'Write' : crushName.toUpperCase())}
-                      letterSpacing={-4}
-                      fallbackStyle={styles.nameDisplayText}
-                    />
-                  </View>
-                  {/* Invisible TextInput overlay to capture typing while using the paper as the visual */}
-                  <TextInput
-                    ref={nameInputRef}
-                    style={styles.hiddenInput}
-                    placeholder="Their name"
-                    placeholderTextColor="transparent"
-                    value={crushName}
-                    onChangeText={setCrushName}
-                    maxLength={20}
-                    autoCorrect={false}
-                    autoCapitalize="words"
-                  />
-                </View>
-              </ImageBackground>
-              </Animated.View>
-            </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Their name"
+            placeholderTextColor="#999"
+            value={crushName}
+            onChangeText={setCrushName}
+            maxLength={20}
+          />
           </View>
           
           <View style={styles.zodiacSection}>
@@ -224,46 +143,36 @@ export default function App() {
   
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ImageBackground
-        source={require('./assets/SkyBlueBackground.png')}
-        style={styles.background}
-        resizeMode="cover"
-        imageStyle={{ transform: [{ scale: 1.15 }] }}
-      >
-        <SafeAreaView style={styles.container}>
-          <StatusBar style="auto" />
-          
-          {gameState === 'setup' && renderSetupScreen()}
-          {gameState === 'playing' && (
-            <View style={styles.gameScreenContainer}>
-              {/* Sound icon button in top right for game screen too */}
-              <TouchableOpacity
-                style={styles.soundIconButton}
-                onPress={() => setSoundEnabled(!soundEnabled)}
-              >
-                <Image
-                  source={require('./assets/SoundIcon.png')}
-                  style={[styles.soundIcon, !soundEnabled && styles.soundIconOff]}
-                  resizeMode="contain"
-                />
-              </TouchableOpacity>
-              {renderGameScreen()}
-            </View>
-          )}
-          {gameState === 'result' && renderResultScreen()}
-        </SafeAreaView>
-      </ImageBackground>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        
+        {gameState === 'setup' && renderSetupScreen()}
+        {gameState === 'playing' && (
+          <View style={styles.gameScreenContainer}>
+            {/* Sound icon button in top right for game screen too */}
+            <TouchableOpacity
+              style={styles.soundIconButton}
+              onPress={() => setSoundEnabled(!soundEnabled)}
+            >
+              <Image
+                source={require('./assets/SoundIcon.png')}
+                style={[styles.soundIcon, !soundEnabled && styles.soundIconOff]}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            {renderGameScreen()}
+          </View>
+        )}
+        {gameState === 'result' && renderResultScreen()}
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFF0F5', // Light pink background
   },
   setupScreenContainer: {
     flex: 1,
@@ -295,65 +204,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#4169E1', // Royal blue
+    color: '#FF69B4',
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#4169E1',
+    color: '#FF69B4',
     opacity: 0.8,
   },
   inputSection: {
     marginBottom: 20,
     width: '100%',
     paddingHorizontal: 0,
-    alignItems: 'center',
-  },
-  namePaperContainer: {
-    width: 400,
-    alignSelf: 'center',
-  },
-  namePaper: {
-    width: '100%',
-    aspectRatio: 2.2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  namePaperImage: {
-    resizeMode: 'contain',
-  },
-  namePaperContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nameDisplay: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 60,
-    width: '100%',
-    paddingVertical: 8,
-  },
-  nameDisplayText: {
-    color: '#4169E1',
-    fontWeight: 'bold',
-    fontSize: 35,
-    textAlign: 'center',
-  },
-  hiddenInput: {
-    // Invisible but tappable input layered over the paper to capture typing
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0,
-    // Ensure there's a measurable size for touch/keyboard focus
-    height: '100%',
-    width: '100%',
   },
   zodiacSection: {
     marginBottom: 20,
@@ -364,15 +227,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
     textAlign: 'center',
-    color: '#4169E1',
+    color: '#FF69B4',
     opacity: 0.9,
   },
   startButton: {
-    backgroundColor: '#4169E1', // Royal blue button
+    backgroundColor: '#FFB6C1', // Light pink button
     paddingVertical: 15,
     borderRadius: 30,
     marginTop: 30,
-    shadowColor: '#4169E1',
+    shadowColor: '#FFB6C1',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -382,7 +245,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   disabledButton: {
-    backgroundColor: '#9BB4F7', // Lighter blue for disabled state
+    backgroundColor: '#FFD1DC', // Lighter pink for disabled state
   },
   startButtonText: {
     color: 'white',
@@ -394,12 +257,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    // Let the Flower screen control its own background image
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFF0F5', // Light pink background
   },
   input: {
     borderWidth: 2,
-    borderColor: '#4169E1',
+    borderColor: '#FFB6C1',
     padding: 15,
     borderRadius: 12,
     backgroundColor: 'white',
@@ -424,11 +286,5 @@ const styles = StyleSheet.create({
   },
   soundIconOff: {
     opacity: 0.4,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
   },
 });

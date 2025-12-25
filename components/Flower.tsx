@@ -34,7 +34,7 @@ const Flower: React.FC<FlowerProps> = ({
     const angleStep = 360 / petalCount;
     const baseAngle = index * angleStep;
     // Add 90 degrees to rotate all petals
-    return baseAngle + 95;
+    return baseAngle + 90;
   };
 
   const handlePetalRemove = (index: number) => {
@@ -172,23 +172,23 @@ const styles = StyleSheet.create({
   },
   stemContainer: {
     position: 'absolute',
-    top: SCREEN_HEIGHT / 2.2, // Flower center is at screen center (container is centered)
+    top: SCREEN_HEIGHT / 2.1, // Flower center is at screen center (container is centered)
     // Center horizontally: screen center minus half stem container width
-    left: SCREEN_WIDTH / 1.4 - 40,
+    left: SCREEN_WIDTH / 1 - 90,
     width: 150,
-    height: SCREEN_HEIGHT / 2.1, // Extend from flower center to bottom of screen
+    height: SCREEN_HEIGHT / 2, // Extend from flower center to bottom of screen
     zIndex: -1, // Behind everything (petals start at zIndex 10, flower center at 2000)
     justifyContent: 'flex-start',
     alignItems: 'center',
-    transform: [{ rotate: '10deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')
+    transform: [{ rotate: '15deg' }], // Adjust this value to rotate the stem (e.g., '5deg', '-5deg')
   },
   stemImage: {
     width: 225,
-    height: SCREEN_HEIGHT / 2.3, // Match container height
+    height: SCREEN_HEIGHT / 2.6, // Match container height
   },
   flowerImageContainer: {
-    width: 65,  // slightly smaller center flower
-    height: 65,
+    width: 75,
+    height: 75,
     position: 'absolute',
     zIndex: 2000, // Higher than any petal (even when dragging at zIndex 1000)
     justifyContent: 'center',

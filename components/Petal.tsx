@@ -60,7 +60,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
   // Scale so the petal fits the radius
   const FARTHEST_PX = Math.max(ANCHOR_X, PETAL_W - ANCHOR_X, ANCHOR_Y, PETAL_H - ANCHOR_Y);
   // Make petals a bit smaller so they don't dominate the flower
-  const SCALE = Math.min(0.7, Math.max(0.09, (radius * 0.85) / FARTHEST_PX)) * 1.0;
+  const SCALE = Math.min(0.7, Math.max(0.09, (radius * 0.85) / FARTHEST_PX)) * 1.2;
 
   // image placement (base pixel at (0,0) of the pivot view)
   const imgW = PETAL_W * SCALE;
@@ -73,7 +73,7 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
   const tipOffsetY = (TIP_Y - ANCHOR_Y) * SCALE;
 
   // Point the petal tip away from the center
-  const ORIENTATION_OFFSET_DEG = 85;
+  const ORIENTATION_OFFSET_DEG = 90;
 
   // --- Base world position inside the flower container ---
   const angleRad = (angle * Math.PI) / 180;
@@ -256,19 +256,6 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
       translateX.value = baseX + e.translationX;
       translateY.value = baseY + e.translationY;
       
-      // Calculate drag distance from origin
-      const dragDistance = Math.sqrt(
-        e.translationX * e.translationX + 
-        e.translationY * e.translationY
-      );
-      
-      // Play pop sound once when petal is pulled past the return distance threshold
-      const RETURN_DISTANCE = 10;
-      if (dragDistance > RETURN_DISTANCE && !hasPlayedSound.value) {
-        hasPlayedSound.value = true;
-        triggerPopSound();
-      }
-      
       // Add slight rotation based on drag direction for realism
       const dragAngle = Math.atan2(e.translationY, e.translationX);
       rotation.value = (dragAngle * 180) / Math.PI * 0.3; // Scale rotation
@@ -288,7 +275,8 @@ const Petal: React.FC<PetalProps> = ({ angle, onRemove, index, isRemoved, center
         
         // Threshold for removal - if dragged far enough, make it fall
         if (dragDistance > 10) {
-          // Sound should have already played during onUpdate when crossing threshold
+          // Play pop sound when petal is pulled past threshold
+          triggerPopSound();
           // Petal was pulled far enough - start falling animation
           // startFallingAnimation will call triggerRemoveCallback
           startFallingAnimation();

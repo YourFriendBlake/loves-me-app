@@ -131,20 +131,11 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
               />
             </View>
           ) : (
-            <>
-              <View style={styles.flowerStemContainer}>
-                <Image 
-                  source={require('../assets/Stem.png')} 
-                  style={styles.stemImage}
-                  resizeMode="contain"
-                />
-                <Image 
-                  source={require('../assets/Flower.png')} 
-                  style={styles.flowerImage}
-                  resizeMode="contain"
-                />
-              </View>
-            </>
+            <Image 
+              source={require('../assets/WiltedFlower.png')} 
+              style={styles.wiltedFlowerImage}
+              resizeMode="contain"
+            />
           )}
           <Text style={[styles.resultText, result ? styles.positiveResult : styles.negativeResult]}>
             {result ? `${name} loves you!` : `${name} loves you not.`}
@@ -187,7 +178,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     overflow: 'hidden', // Ensure the image respects borderRadius
-    position: 'relative', // For absolute positioning of petals
   },
   resultText: {
     fontSize: 36,
@@ -206,27 +196,10 @@ const styles = StyleSheet.create({
     height: 150,
     marginBottom: 20,
   },
-  flowerStemContainer: {
-    width: 120,
-    height: 170,
+  wiltedFlowerImage: {
+    width: 150,
+    height: 150,
     marginBottom: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  stemImage: {
-    position: 'absolute',
-    width: 60,
-    height: 120,
-    bottom: 0,
-    transform: [{ rotate: '10deg' }],
-  },
-  flowerImage: {
-    width: 35,
-    height: 25,
-    zIndex: 1,
-    position: 'absolute',
-    top: 40, // Move flower higher in the container
   },
   playAgainButton: {
     backgroundColor: '#4169E1', // Royal blue button
